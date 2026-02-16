@@ -1,0 +1,71 @@
+version: 2
+
+models:
+  - name: fct_monthly_zone_revenue
+    description: "Fact table of monthly revenue by pickup zone and taxi type"
+    columns:
+      - name: year
+        description: "Year of the trip"
+        tests:
+          - not_null
+      - name: month
+        description: "Month of the trip"
+        tests:
+          - not_null
+      - name: pickup_location_id
+        description: "Pickup location zone ID"
+        tests:
+          - not_null
+      - name: taxi_type
+        description: "Green or Yellow taxi"
+        tests:
+          - not_null
+      - name: total_monthly_trips
+        description: "Total number of trips per month"
+        tests:
+          - not_null
+      - name: revenue_monthly_total_amount
+        description: "Total revenue per month"
+        tests:
+          - not_null
+
+    tests:
+      - dbt_expectations.expect_table_row_count_to_equal:
+          value: 14120  # fct_monthly_zone_revenue total records
+
+sources:
+  - name: nytaxi
+    description: "Raw NYC taxi data 2019-2020"
+    tables:
+      - name: green_tripdata
+        description: "Green taxi trips"
+        columns:
+          - name: payment_type
+            tests:
+              - accepted_values:
+                  values: [1,2,3,4,5]
+          - name: vendor_id
+            tests:
+              - not_null
+
+      - name: yellow_tripdata
+        description: "Yellow taxi trips"
+        columns:
+          - name: payment_type
+            tests:
+              - accepted_values:
+                  values: [1,2,3,4,5]
+          - name: vendor_id
+            tests:
+              - not_null
+
+      - name: fhv_tripdata_2019
+        description: "FHV trips 2019"
+        columns:
+          - name: dispatching_base_num
+            tests:
+              - not_null
+
+    tests:
+      - dbt_expectations.expect_table_row_count_to_equal:
+          value: 43244693  # stg_fhv_tripdata record count after filtering NULL dispatching_base_num
